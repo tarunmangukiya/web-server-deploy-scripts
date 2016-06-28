@@ -10,6 +10,7 @@ UPDATE=${UPDATE=update}
 INSTALL=${INSTALL=install -y}
 
 # PACKAGES
+PACK=''
 P_APACHE='off'
 P_PHP='off'
 P_MYSQL='off'
@@ -104,7 +105,7 @@ _install_grunt() {
 	$DEBUG $SUDO npm install -g grunt-cli
 }
 
-_setup_laravel_stack() {
+_init_laravel_stack() {
 	echo "Setup Laravel Stack"
 
 	P_APACHE='on'
@@ -113,57 +114,57 @@ _setup_laravel_stack() {
 	P_COMPOSER='on'
 	P_NODEJS='on'
 
-	dialog --checklist "Modifty Stack:" 15 40 5 \
-	"Apache2" Apache2 on \
-	"PHP" PHP on \
-	"MySql" MySql on \
-	"Composer" Composer on \
-	"NodeJs" NodeJS on 2> $tempfile
-	# 6 GRUNT $P_GRUNT \
+}
+
+_modify_stack() {
+	dialog --checklist "Modifty Stack:" 15 40 10 \
+	"Apache2" Apache2 "$P_APACHE" \
+	"PHP" PHP "$P_PHP" \
+	"MySql" MySql "$P_MYSQL" \
+	"Composer" Composer "$P_COMPOSER" \
+	"NodeJs" NodeJS "$P_NODEJS" \
+	"Grunt" Grunt "$P_GRUNT" \
+	2> $tempfile
 	
-	choice=$(cat $tempfile)
+	PACK=$(cat $tempfile)
 
 	case $? in
 	  0)
-	    webstack=$choice ;;
+	    echo $PACK ;;
 	  1)
 	    exit ;;
 	  255)
 	    exit ;;
 	esac
-
-	echo $choice
-	echo $P_APACHE
 }
 
 _install() {
-	echo $P_APACHE
-	if [ "$P_APACHE" != "off" ]
+	if [[ $PACK == *"Apache2"* ]]
 	then
 		_install_apache
 	fi
 
-	if [ "$P_PHP" != "off" ]
+	if [[ $PACK == *"PHP"* ]]
 	then
 		_install_php
 	fi
 
-	if [ "$P_MYSQL" != "off" ]
+	if [[ $PACK == *"MySql"* ]]
 	then
 		_install_mysql
 	fi
 
-	if [ "$P_COMPOSER" != "off" ]
+	if [[ $PACK == *"Composer"* ]]
 	then
 		_install_composer
 	fi
 
-	if [ "$P_NODEJS" != "off" ]
+	if [[ $PACK == *"NodeJs"* ]]
 	then
 		_install_nodejs
 	fi
 
-	if [ "$P_GRUNT" != "off" ]
+	if [[ $PACK == *"Grunt"* ]]
 	then
 		_install_grunt
 	fi
@@ -173,7 +174,7 @@ _init_web_stack() {
 	# $SUDO $PM $UPDATE
 	if [ "$webstack" = "Laravel" ]
 	then
-		_setup_laravel_stack
+		_init_laravel_stack
 	elif [ "$webstack" = "Custom" ]
 	then
 		echo "Custom"
@@ -181,6 +182,7 @@ _init_web_stack() {
 		exit
 	fi
 
+	_modify_stack
 	_install
 }
 
