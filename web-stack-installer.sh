@@ -17,6 +17,7 @@ P_MYSQL='off'
 P_COMPOSER='off'
 P_NODEJS='off'
 P_GRUNT='off'
+P_MONGODB='off'
 
 # Global veriable
 webstack=''
@@ -105,6 +106,23 @@ _install_grunt() {
 	$DEBUG $SUDO npm install -g grunt-cli
 }
 
+_install_monogodb() {
+	echo "Install grunt"
+	P_MONGODB='on'
+
+	$DEBUG $SUDO apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+	$DEBUG echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | $DEBUG $SUDO tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+	$DEBUG $SUDO $PM update
+	$DEBUG $SUDO $PM $INSTALL -y mongodb-org
+
+	if [ $(which php) ]; then
+		$DEBUG $SUDO $PM $INSTALL php5-dev
+		$DEBUG $SUDO pecl install mongodb
+		$DEBUG echo "extension=mongodb.so" | $DEBUG $SUDO tee /etc/php5/mods-available/mongodb.ini
+		$DEBUG $SUDO php5enmod mongodb
+	fi
+}
+
 _init_laravel_stack() {
 	echo "Setup Laravel Stack"
 
@@ -123,6 +141,7 @@ _modify_stack() {
 	"MySql" MySql "$P_MYSQL" \
 	"Composer" Composer "$P_COMPOSER" \
 	"NodeJs" NodeJS "$P_NODEJS" \
+	"MongoDB" MongoDB "$P_MONGODB" \
 	"Grunt" Grunt "$P_GRUNT" \
 	2> $tempfile
 	
@@ -167,6 +186,11 @@ _install() {
 	if [[ $PACK == *"Grunt"* ]]
 	then
 		_install_grunt
+	fi
+
+	if [[ $PACK == *"MongoDB"* ]]
+	then
+		_install_monogodb
 	fi
 }
 
